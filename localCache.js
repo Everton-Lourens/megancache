@@ -23,7 +23,7 @@ module.exports.getFromRedis = async function getFromRedis(key) {
 
 
 // Adiciona um item ao cache
-module.exports.addToLocalCache = async function addToLocalCache(key, value, expire = 30) {
+module.exports.addToLocalCache = async function addToLocalCache(key, value, expire = 300) { // 5 minutes (in seconds)
     await removeFromLocalCache(key);
     // Define o tempo de expiração
     const expireTime = Date.now() + expire * 1000;
