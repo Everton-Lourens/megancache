@@ -1,38 +1,42 @@
 const CronJob = require('cron').CronJob;
 
 var _cache = new Map();
-var _cacheExpire = new Map(); // Mapa para armazenar tempos de expiração
+var _cacheExpire = new Map();
 
 
 module.exports.addToRedis = async function addToRedis(key, value, expire = 300) {
-    if ((!key && key !== 0) || key === null || key === undefined)
-        return console.log('===> NÃO TEM NADA NA KEY <===');
-    key = JSON.stringify(key) || JSON.stringify({ key });
-    value = JSON.stringify(value) || [];
+    if (typeof key !== 'string' || (!key && key !== 0) || key === null || key === undefined)
+        throw new Error('===> NO KEY OR NOT A STRING <===');
     await _cache.set(`${key}`, value)
     await _cache.expire(`${key}`, expire); // expire in 5 minutes
     return true;
 }
 
 module.exports.getFromRedis = async function getFromRedis(key) {
-    if ((!key && key !== 0) || key === null || key === undefined)
-        return console.log('===> NÃO TEM NADA NA KEY <===');
-    key = JSON.stringify(key) || JSON.stringify({ key });
+    if (typeof key !== 'string' || (!key && key !== 0) || key === null || key === undefined)
+        throw new Error('===> NO KEY OR NOT A STRING <===');
     return await _cache.get(`${key}`) || null;
 }
 
-
 // Adiciona um item ao cache
-module.exports.addToLocalCache = async function addToLocalCache(key, value, expire = 300) { // 5 minutes (in seconds)
+module.exports.addToLocalCache = async function addToLocalCache(key, value, expire = 300) {
+    if (typeof key !== 'string' || (!key && key !== 0) || key === null || key === undefined)
+        throw new Error('===> NO KEY OR NOT A STRING <===');
     await removeFromLocalCache(key);
     // Define o tempo de expiração
     const expireTime = Date.now() + expire * 1000;
     _cacheExpire.set(key, expireTime);
     _cache.set(key, value);
+    // Verifica a quantidade de memória utilizada pelo cache
+    const usedMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+    console.log(`((((((((((The script uses approximately ${usedMemory.toFixed(2)} MB))))))))))`);
 }
 
 // Recupera um item do cache
 module.exports.getFromLocalCache = async function getFromLocalCache(key) {
+    if (typeof key !== 'string' || (!key && key !== 0) || key === null || key === undefined)
+        throw new Error('===> NO KEY OR NOT A STRING <===');
+
     const expireTime = await _cacheExpire.get(key);
 
     // Verifica se a chave existe e se não expirou
