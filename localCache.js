@@ -27,9 +27,11 @@ module.exports.addToLocalCache = async function addToLocalCache(key, value, expi
     const expireTime = Date.now() + expire * 1000;
     _cacheExpire.set(key, expireTime);
     _cache.set(key, value);
-    // Verifica a quantidade de memória utilizada pelo cache
-    const usedMemory = process.memoryUsage().heapUsed / 1024 / 1024;
-    console.log(`((((((((((The script uses approximately ${usedMemory.toFixed(2)} MB))))))))))`);
+    if (process.env.NODE_ENV === 'development') {
+        // Verifica a quantidade de memória utilizada pelo cache
+        const usedMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+        console.log(`((((((((((The script uses approximately ${usedMemory.toFixed(2)} MB))))))))))`);
+    }
 }
 
 // Recupera um item do cache
