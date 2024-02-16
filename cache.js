@@ -1,24 +1,64 @@
-const redis = require('redis');
-const { logger } = require('./logger');
+const memoryCache = require('memory-cache');
+const { store } = require('meganshop/extensions/meganCache/redis');
+
+
+module.exports.addToRedis = async function addToRedis(key, value, expire = 300) {
+    if (typeof key !== 'string' || (!key && key !== 0) || key === null || key === undefined)
+        throw new Error('===> NÃO TEM NADA NA KEY OU NÃO É UMA STRING <===');
+
+}
+
+module.exports.getFromRedis = async function getFromRedis(key) {
+    if (typeof key !== 'string' || (!key && key !== 0) || key === null || key === undefined)
+        throw new Error('===> NÃO TEM NADA NA KEY OU NÃO É UMA STRING <===');
+    return await _cacheRedis.get(`${key}`) || null;
+}
+
+
+// Adiciona um item ao cache/addToLocalCache
+module.exports.addToLocalCache = async function addToLocalCache(key, value, expire = 300) {
+    if (typeof key !== 'string' || (!key && key !== 0) || key === null || key === undefined)
+        throw new Error('===> NÃO TEM NADA NA KEY OU NÃO É UMA STRING <===');
+    if (store !== null) {
+        console.log('ADD REDIS')
+        await _cacheRedis.set(`${key}`, value)
+        await _cacheRedis.expire(`${key}`, expire); // expire in 5 minutes
+        console.log('ADD REDIS')
+        return true;
+    } else {
+        console.log('ADD LOCALCACHE')
+        await memoryCache.put(key, value, expire * 1000);
+        console.log('ADD LOCALCACHE')
+    }
+}
+
+// Recupera um item do cache
+module.exports.getFromLocalCache = async function getFromLocalCache(key) {
+    if (typeof key !== 'string' || (!key && key !== 0) || key === null || key === undefined)
+        throw new Error('===> NÃO TEM NADA NA KEY OU NÃO É UMA STRING <===');
+    if (store !== null) {
+        console.log('GET REDIS')
+        console.log('GET REDIS')
+        return await _cacheRedis.get(`${key}`) || null;
+    } else {
+        console.log('GET LOCALCACHE')
+        console.log('GET LOCALCACHE')
+        return await memoryCache.get(key);
+    }
+}
+
 
 /*
-const { store } = require('meganshop/extensions/cache'); 
-//////////////////////////////////////
-await store.set(`pessoas:id:${req.params.id}`, JSON.stringify(result))
-await store.expire(`pessoas:id:${req.params.id}`, 300); // expire in 5 minutes
+// Remove um item do cache
+async function removeFromLocalCache(key) {
+    if (typeof key !== 'string' || (!key && key !== 0) || key === null || key === undefined)
+        throw new Error('===> NÃO TEM NADA NA KEY OU NÃO É UMA STRING <===');
+    memoryCache.del(key);
+}
+
+// Limpa o cache inteiro
+async function clearLocalCache() {
+    memoryCache.clear();
+}
+
 */
-
-module.exports.store = redis.createClient({ url: process.env.REDIS_URL || 'redis://localhost'});
-
-module.exports.store.on('error', function logError(err){
-    logger.error(`cache.js: an error occurred ${err} retrying in sec`);
-    setTimeout(() => {
-        module.exports.store.connect();
-    }, 1000)
-})
-
-module.exports.store.on('connect', function(){
-    logger.info(`cache.js: cached is connected!`);
-});
-
-module.exports.store.connect();
