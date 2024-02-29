@@ -1,5 +1,5 @@
 const memoryCache = require('memory-cache');
-const { store } = require('meganshop/extensions/meganCache/redis');
+const { store } = require('./redis');//   ||  const { store } = require('meganshop/extensions/meganCache/redis');
 
 // Adiciona um item ao cache/addToLocalCache
 module.exports.addToLocalCache = async function addToLocalCache(key, value, expire = 300) {
